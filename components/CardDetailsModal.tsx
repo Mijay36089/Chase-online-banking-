@@ -173,4 +173,4 @@ const CardDetailsModal: React.FC<CardDetailsModalProps> = ({ isOpen, onClose, ca
   );
 };
 
-export { CardDetailsModal };
+export default CardDetailsModal;

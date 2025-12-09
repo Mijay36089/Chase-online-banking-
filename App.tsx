@@ -1,23 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { Menu, Search, User as UserIcon, LogOut, Bell, Building2, Settings, FileText, Send, PieChart, TrendingUp, HelpCircle, X, Store, Activity, FileBarChart, ChevronDown, ArrowUpRight, Lock, RefreshCw, ChevronLeft, ChevronRight as ChevronRightIcon, Star, MoreVertical } from 'lucide-react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { Menu, Search, User as UserIcon, LogOut, Bell, Building2, Settings, FileText, Send, PieChart, TrendingUp, HelpCircle, X, Store, Activity, FileBarChart, ChevronDown, ArrowUpRight, Lock, RefreshCw, ChevronLeft, ChevronRight as ChevronRightIcon, Star, MoreVertical, Loader2 } from 'lucide-react';
 import AuthModal from './components/AuthModal';
 import Dashboard from './components/Dashboard';
-import TransferModal from './components/TransferModal';
-import DepositModal from './components/DepositModal';
-import TransactionDetailsModal from './components/TransactionDetailsModal';
-import SettingsModal, { SettingsTab } from './components/SettingsModal';
-import ConfirmationModal from './components/ConfirmationModal';
-import SupportModal from './components/SupportModal';
-import AccountManagementModal from './components/AccountManagementModal';
-import FinancialToolsModal from './components/FinancialToolsModal';
-import WealthManagementModal from './components/WealthManagementModal';
-// Fix: Changed default import to named import to resolve compilation error
-import { CardDetailsModal } from './components/CardDetailsModal';
-import AccountDetailsModal from './components/AccountDetailsModal';
-import OpenAccountModal from './components/OpenAccountModal';
 import ChaseLogo from './components/ChaseLogo';
 import { Transaction, RecurringPayment, Card, Loan, BankAccount, Account } from './types';
 import { MOCK_TRANSACTIONS, INITIAL_BALANCE, MOCK_CARDS, MOCK_LOANS } from './constants';
+
+// Lazy Load Heavy Components for Fast Initial Load
+const TransferModal = React.lazy(() => import('./components/TransferModal'));
+const DepositModal = React.lazy(() => import('./components/DepositModal'));
+const TransactionDetailsModal = React.lazy(() => import('./components/TransactionDetailsModal'));
+const SettingsModal = React.lazy(() => import('./components/SettingsModal'));
+const ConfirmationModal = React.lazy(() => import('./components/ConfirmationModal'));
+const SupportModal = React.lazy(() => import('./components/SupportModal'));
+const AccountManagementModal = React.lazy(() => import('./components/AccountManagementModal'));
+const FinancialToolsModal = React.lazy(() => import('./components/FinancialToolsModal'));
+const WealthManagementModal = React.lazy(() => import('./components/WealthManagementModal'));
+const CardDetailsModal = React.lazy(() => import('./components/CardDetailsModal'));
+const AccountDetailsModal = React.lazy(() => import('./components/AccountDetailsModal'));
+const OpenAccountModal = React.lazy(() => import('./components/OpenAccountModal'));
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -49,7 +50,7 @@ function App() {
   const [isOpenAccountModalOpen, setIsOpenAccountModalOpen] = useState(false);
   
   // Settings Tab Deep Link State
-  const [settingsInitialTab, setSettingsInitialTab] = useState<SettingsTab>('profile');
+  const [settingsInitialTab, setSettingsInitialTab] = useState<any>('profile');
   
   // Recurring Payment Cancellation State
   const [recurringPaymentIdToCancel, setRecurringPaymentIdToCancel] = useState<string | null>(null);
@@ -647,98 +648,106 @@ function App() {
             />
         </main>
 
-        {/* Modals */}
-        <TransferModal 
-            isOpen={isTransferModalOpen}
-            onClose={() => setIsTransferModalOpen(false)}
-            onTransfer={handleTransfer}
-            onSchedule={handleSchedulePayment}
-            onUpdateLimits={handleUpdateLimits}
-            currentBalance={balance}
-            savingsBalance={savingsBalance}
-            mode={transferMode}
-            transactionLimit={transactionLimit}
-            dailyLimit={dailyLimit}
-            dailyTotalSent={dailyTotalSent}
-        />
+        {/* Modals wrapped in Suspense for Lazy Loading */}
+        <Suspense fallback={
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/10 backdrop-blur-[1px]">
+                <div className="bg-white p-4 rounded-full shadow-lg">
+                    <Loader2 className="h-8 w-8 animate-spin text-[#117aca]" />
+                </div>
+            </div>
+        }>
+            <TransferModal 
+                isOpen={isTransferModalOpen}
+                onClose={() => setIsTransferModalOpen(false)}
+                onTransfer={handleTransfer}
+                onSchedule={handleSchedulePayment}
+                onUpdateLimits={handleUpdateLimits}
+                currentBalance={balance}
+                savingsBalance={savingsBalance}
+                mode={transferMode}
+                transactionLimit={transactionLimit}
+                dailyLimit={dailyLimit}
+                dailyTotalSent={dailyTotalSent}
+            />
 
-        <DepositModal 
-            isOpen={isDepositModalOpen}
-            onClose={() => setIsDepositModalOpen(false)}
-            onDeposit={handleDepositCheck}
-        />
+            <DepositModal 
+                isOpen={isDepositModalOpen}
+                onClose={() => setIsDepositModalOpen(false)}
+                onDeposit={handleDepositCheck}
+            />
 
-        <SettingsModal 
-            isOpen={isSettingsModalOpen}
-            onClose={() => setIsSettingsModalOpen(false)}
-            initialTab={settingsInitialTab}
-        />
+            <SettingsModal 
+                isOpen={isSettingsModalOpen}
+                onClose={() => setIsSettingsModalOpen(false)}
+                initialTab={settingsInitialTab}
+            />
 
-        <CardDetailsModal
-            isOpen={!!selectedCardForDetails}
-            onClose={() => setSelectedCardForDetails(null)}
-            card={selectedCardForDetails}
-        />
+            <CardDetailsModal
+                isOpen={!!selectedCardForDetails}
+                onClose={() => setSelectedCardForDetails(null)}
+                card={selectedCardForDetails}
+            />
 
-        <AccountDetailsModal
-            isOpen={!!selectedAccount}
-            onClose={() => setSelectedAccount(null)}
-            account={selectedAccount}
-            transactions={transactions}
-        />
+            <AccountDetailsModal
+                isOpen={!!selectedAccount}
+                onClose={() => setSelectedAccount(null)}
+                account={selectedAccount}
+                transactions={transactions}
+            />
 
-        <AccountManagementModal 
-            isOpen={isAccountMgmtOpen} 
-            onClose={() => setIsAccountMgmtOpen(false)} 
-        />
+            <AccountManagementModal 
+                isOpen={isAccountMgmtOpen} 
+                onClose={() => setIsAccountMgmtOpen(false)} 
+            />
 
-        <FinancialToolsModal 
-            isOpen={isFinancialToolsOpen} 
-            onClose={() => setIsFinancialToolsOpen(false)} 
-        />
+            <FinancialToolsModal 
+                isOpen={isFinancialToolsOpen} 
+                onClose={() => setIsFinancialToolsOpen(false)} 
+            />
 
-        <WealthManagementModal 
-            isOpen={isWealthOpen} 
-            onClose={() => setIsWealthOpen(false)} 
-        />
+            <WealthManagementModal 
+                isOpen={isWealthOpen} 
+                onClose={() => setIsWealthOpen(false)} 
+            />
 
-        <SupportModal
-            isOpen={isSupportOpen}
-            onClose={() => setIsSupportOpen(false)}
-        />
+            <SupportModal
+                isOpen={isSupportOpen}
+                onClose={() => setIsSupportOpen(false)}
+            />
 
-        <OpenAccountModal
-            isOpen={isOpenAccountModalOpen}
-            onClose={() => setIsOpenAccountModalOpen(false)}
-            onSubmit={handleOpenAccountApplication}
-        />
+            <OpenAccountModal
+                isOpen={isOpenAccountModalOpen}
+                onClose={() => setIsOpenAccountModalOpen(false)}
+                onSubmit={handleOpenAccountApplication}
+            />
 
-        <ConfirmationModal 
-            isOpen={isLogoutConfirmOpen}
-            onClose={() => setIsLogoutConfirmOpen(false)}
-            onConfirm={handleLogout}
-            title="Sign out?"
-            message="Are you sure you want to sign out of your account? You will need to enter your credentials to access your banking dashboard again."
-            confirmLabel="Sign Out"
-            variant="danger"
-            icon={LogOut}
-        />
+            <ConfirmationModal 
+                isOpen={isLogoutConfirmOpen}
+                onClose={() => setIsLogoutConfirmOpen(false)}
+                onConfirm={handleLogout}
+                title="Sign out?"
+                message="Are you sure you want to sign out of your account? You will need to enter your credentials to access your banking dashboard again."
+                confirmLabel="Sign Out"
+                variant="danger"
+                icon={LogOut}
+            />
 
-        <ConfirmationModal
-            isOpen={!!recurringPaymentIdToCancel}
-            onClose={() => setRecurringPaymentIdToCancel(null)}
-            onConfirm={handleConfirmCancelRecurring}
-            title="Cancel Recurring Payment?"
-            message="Are you sure you want to cancel this recurring payment? Future scheduled transfers for this recipient will be stopped."
-            confirmLabel="Cancel Payment"
-            variant="danger"
-        />
+            <ConfirmationModal
+                isOpen={!!recurringPaymentIdToCancel}
+                onClose={() => setRecurringPaymentIdToCancel(null)}
+                onConfirm={handleConfirmCancelRecurring}
+                title="Cancel Recurring Payment?"
+                message="Are you sure you want to cancel this recurring payment? Future scheduled transfers for this recipient will be stopped."
+                confirmLabel="Cancel Payment"
+                variant="danger"
+            />
 
-        <TransactionDetailsModal
-            isOpen={!!selectedTransaction}
-            onClose={() => setSelectedTransaction(null)}
-            transaction={selectedTransaction}
-        />
+            <TransactionDetailsModal
+                isOpen={!!selectedTransaction}
+                onClose={() => setSelectedTransaction(null)}
+                transaction={selectedTransaction}
+            />
+        </Suspense>
       </>
       )}
 
