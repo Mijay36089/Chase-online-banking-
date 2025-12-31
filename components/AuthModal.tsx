@@ -1,12 +1,14 @@
+
 import React, { useState } from 'react';
-import { X, Lock, Mail, ChevronRight, AlertCircle, User, MapPin, Phone, CheckCircle, Loader2, ShieldCheck, HelpCircle } from 'lucide-react';
+import { X, Lock, Mail, ChevronRight, AlertCircle, User, MapPin, Phone, CheckCircle, Loader2, ShieldCheck, HelpCircle, MessageSquare } from 'lucide-react';
 import ChaseLogo from './ChaseLogo';
 
 interface AuthModalProps {
   onLogin: (name?: string) => void;
+  onOpenSupport?: () => void;
 }
 
-const AuthModal: React.FC<AuthModalProps> = ({ onLogin }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ onLogin, onOpenSupport }) => {
   const [isLogin, setIsLogin] = useState(true);
   
   // Form State
@@ -124,8 +126,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ onLogin }) => {
     );
   }
 
-  // NOTE: This component is now designed to be embedded in the Landing Page (App.tsx), not as a full screen modal overlay itself, 
-  // though it can function as one if needed. Based on the requirements, it's the "Sign In box".
   return (
     <div className="bg-white rounded shadow-xl w-full overflow-hidden animate-fade-in border-t-8 border-[#117aca]">
         {/* Header is simpler for the login box look */}
@@ -266,7 +266,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onLogin }) => {
             {isLogin && (
                 <div className="text-center space-y-2 mt-4">
                      <a href="#" className="block text-sm text-[#117aca] hover:underline">Forgot username/password?</a>
-                     <div className="pt-2 border-t border-gray-100">
+                     <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
                          <button
                             type="button"
                             onClick={() => {
@@ -276,6 +276,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ onLogin }) => {
                             className="text-sm text-[#117aca] hover:underline font-medium focus:outline-none"
                          >
                             Not enrolled? Sign up now.
+                         </button>
+                         <button
+                            type="button"
+                            onClick={onOpenSupport}
+                            className="text-xs text-gray-500 hover:text-[#117aca] flex items-center justify-center gap-1 mt-1 transition-colors"
+                         >
+                             <MessageSquare className="h-3 w-3" /> Contact Customer Care
                          </button>
                      </div>
                 </div>

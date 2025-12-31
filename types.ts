@@ -1,3 +1,4 @@
+
 export interface Transaction {
   id: string;
   date: string;
@@ -23,6 +24,7 @@ export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
   isThinking?: boolean;
+  sources?: { title: string; uri: string }[];
 }
 
 export interface RecurringPayment {

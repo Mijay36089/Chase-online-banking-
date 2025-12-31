@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { X, Send, Receipt, Building, Globe, ArrowRightLeft, Landmark, RefreshCw, Settings, ShieldCheck, ChevronLeft, Check, Loader2, AlertCircle, Clock } from 'lucide-react';
+import { X, Send, Receipt, Building, Globe, ArrowRightLeft, Landmark, RefreshCw, Settings, ShieldCheck, ChevronLeft, Check, Loader2, AlertCircle, Clock, KeyRound } from 'lucide-react';
 import { RecurringPayment } from '../types';
 import ConfirmationModal from './ConfirmationModal';
 
@@ -45,6 +46,11 @@ const TransferModal: React.FC<TransferModalProps> = ({
   const [iban, setIban] = useState('');
   const [country, setCountry] = useState('');
 
+  // OTP State
+  const [isOtpPhase, setIsOtpPhase] = useState(false);
+  const [otpValue, setOtpValue] = useState('');
+  const [otpError, setOtpError] = useState('');
+
   // Recurring state
   const [isRecurring, setIsRecurring] = useState(false);
   const [frequency, setFrequency] = useState<'Weekly' | 'Monthly' | 'Yearly'>('Monthly');
@@ -77,6 +83,9 @@ const TransferModal: React.FC<TransferModalProps> = ({
       setIsSettingsMode(false);
       setIsConfirmOpen(false);
       setIsProcessing(false);
+      setIsOtpPhase(false);
+      setOtpValue('');
+      setOtpError('');
       setNewTxLimit(transactionLimit.toString());
       setNewDailyLimit(dailyLimit.toString());
     }
@@ -149,16 +158,23 @@ const TransferModal: React.FC<TransferModalProps> = ({
        if (!iban.trim()) { setError('IBAN is required.'); return; }
        if (!country.trim()) { setError('Country is required.'); return; }
     }
-    // Internal doesn't need recipient validation as it's fixed
 
-    // If validation passes, open Confirmation Modal
     setIsConfirmOpen(true);
   };
 
+  const handleConfirmReview = () => {
+    setIsOtpPhase(true);
+  };
+
   const handleExecuteTransfer = () => {
+    if (otpValue !== '060319') {
+        setOtpError('Invalid OTP code. Please try again.');
+        return;
+    }
+
     setIsProcessing(true);
+    setOtpError('');
     
-    // Simulate network delay for realism
     setTimeout(() => {
         const numAmount = parseFloat(amount);
         let finalRecipient = recipient;
@@ -609,61 +625,92 @@ const TransferModal: React.FC<TransferModalProps> = ({
       <ConfirmationModal
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
-        onConfirm={handleExecuteTransfer}
-        title={isRecurring ? "Confirm Schedule" : isBillPay ? "Confirm Bill Payment" : "Confirm Transfer"}
-        confirmLabel={isRecurring ? "Schedule Payment" : isBillPay ? "Pay Bill" : "Send Funds"}
+        onConfirm={isOtpPhase ? handleExecuteTransfer : handleConfirmReview}
+        title={isOtpPhase ? "Security Verification" : (isRecurring ? "Confirm Schedule" : isBillPay ? "Confirm Bill Payment" : "Confirm Transfer")}
+        confirmLabel={isOtpPhase ? "Verify & Send" : (isRecurring ? "Schedule Payment" : isBillPay ? "Pay Bill" : "Send Funds")}
         isLoading={isProcessing}
-        icon={ShieldCheck}
-        message="Please review the transaction details below."
+        icon={isOtpPhase ? KeyRound : ShieldCheck}
+        message={isOtpPhase ? "Enter the 6-digit code sent to your secure device to complete this transaction." : "Please review the transaction details below."}
       >
         <div className="space-y-4">
-           <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-              <div className="text-center mb-4">
-                  <p className="text-xs text-gray-500 mb-1 uppercase tracking-wide">Total Amount</p>
-                  <p className="text-3xl font-bold text-gray-900">
-                      ${parseFloat(amount || '0').toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-              </div>
-              <div className="space-y-3 text-sm border-t border-gray-200 pt-3">
-                 <div className="flex justify-between">
-                    <span className="text-gray-500">From</span>
-                    <span className="font-semibold text-gray-900 text-right">Chase Checking (...8842)</span>
-                 </div>
-                 <div className="flex justify-between">
-                    <span className="text-gray-500">To</span>
-                    <div className="text-right">
-                       <span className="font-semibold text-gray-900 block">{getRecipientDisplay()}</span>
-                       {(activeTab === 'domestic' && !isBillPay) && (
-                          <span className="text-xs text-gray-400">Acct: ...{accountNum.slice(-4)}</span>
-                       )}
-                    </div>
-                 </div>
-                 <div className="flex justify-between">
-                    <span className="text-gray-500">Date</span>
-                    <span className="font-semibold text-gray-900 text-right">
-                        {getDateSummary()}
-                    </span>
-                 </div>
-                 <div className="flex justify-between">
-                    <span className="text-gray-500">Fees</span>
-                    <span className="font-semibold text-gray-900">{getFeeDisplay()}</span>
-                 </div>
-                 <div className="flex justify-between">
-                    <span className="text-gray-500">Estimated Arrival</span>
-                    <span className="font-semibold text-[#117aca]">{getEstimatedArrival()}</span>
-                 </div>
-              </div>
-           </div>
+           {isOtpPhase ? (
+             <div className="space-y-4 py-2">
+                <div>
+                   <label htmlFor="otp-input" className="block text-sm font-medium text-gray-700 mb-2">6-Digit Secure Code</label>
+                   <div className="relative">
+                      <input 
+                         id="otp-input"
+                         type="text" 
+                         maxLength={6}
+                         className="w-full text-center tracking-[1em] text-2xl font-bold py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#117aca] outline-none"
+                         placeholder="••••••"
+                         value={otpValue}
+                         onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9]/g, '');
+                            setOtpValue(val);
+                            if (otpError) setOtpError('');
+                         }}
+                         autoFocus
+                      />
+                   </div>
+                   {otpError && (
+                      <p className="text-red-600 text-xs mt-2 flex items-center gap-1 font-medium" role="alert">
+                         <AlertCircle className="h-3 w-3" /> {otpError}
+                      </p>
+                   )}
+                </div>
+             </div>
+           ) : (
+             <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                <div className="text-center mb-4">
+                    <p className="text-xs text-gray-500 mb-1 uppercase tracking-wide">Total Amount</p>
+                    <p className="text-3xl font-bold text-gray-900">
+                        ${parseFloat(amount || '0').toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                </div>
+                <div className="space-y-3 text-sm border-t border-gray-200 pt-3">
+                   <div className="flex justify-between">
+                      <span className="text-gray-500">From</span>
+                      <span className="font-semibold text-gray-900 text-right">Chase Checking (...8842)</span>
+                   </div>
+                   <div className="flex justify-between">
+                      <span className="text-gray-500">To</span>
+                      <div className="text-right">
+                         <span className="font-semibold text-gray-900 block">{getRecipientDisplay()}</span>
+                         {(activeTab === 'domestic' && !isBillPay) && (
+                            <span className="text-xs text-gray-400">Acct: ...{accountNum.slice(-4)}</span>
+                         )}
+                      </div>
+                   </div>
+                   <div className="flex justify-between">
+                      <span className="text-gray-500">Date</span>
+                      <span className="font-semibold text-gray-900 text-right">
+                          {getDateSummary()}
+                      </span>
+                   </div>
+                   <div className="flex justify-between">
+                      <span className="text-gray-500">Fees</span>
+                      <span className="font-semibold text-gray-900">{getFeeDisplay()}</span>
+                   </div>
+                   <div className="flex justify-between">
+                      <span className="text-gray-500">Estimated Arrival</span>
+                      <span className="font-semibold text-[#117aca]">{getEstimatedArrival()}</span>
+                   </div>
+                </div>
+             </div>
+           )}
            
-           <div className="flex items-start gap-2 bg-blue-50 p-3 rounded-lg text-xs text-blue-800">
-              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              <p>
-                 Please review details carefully. Remaining daily limit: 
-                 <span className="font-bold ml-1">
-                    ${Math.max(0, dailyLimit - dailyTotalSent - parseFloat(amount || '0')).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                 </span>
-              </p>
-           </div>
+           {!isOtpPhase && (
+             <div className="flex items-start gap-2 bg-blue-50 p-3 rounded-lg text-xs text-blue-800">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                <p>
+                   Please review details carefully. Remaining daily limit: 
+                   <span className="font-bold ml-1">
+                      ${Math.max(0, dailyLimit - dailyTotalSent - parseFloat(amount || '0')).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                   </span>
+                </p>
+             </div>
+           )}
         </div>
       </ConfirmationModal>
     </>

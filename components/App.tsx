@@ -94,6 +94,7 @@ function App() {
   };
 
   const handleSwitchToStaff = () => {
+    setIsAuthenticated(false);
     setIsStaffView(true);
     setIsSidebarOpen(false);
   };
@@ -162,16 +163,9 @@ function App() {
   const currentUrl = isAuthenticated ? 'https://secure.chase.com/web/auth/dashboard' : 'https://www.chase.com/personal/banking/login';
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col font-sans text-slate-800 overflow-x-hidden">
+    <div className="min-h-screen bg-gray-100 flex flex-col font-sans text-slate-800">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-16 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-[#117aca] focus:shadow-md focus:ring-2 focus:ring-[#117aca] rounded-md font-semibold">Skip to main content</a>
       
-      {/* Overlay Portal: Fixed to device viewport */}
-      {isStaffView && (
-          <Suspense fallback={<div className="fixed inset-0 z-[200] bg-white flex items-center justify-center"><Loader2 className="animate-spin h-8 w-8 text-[#117aca]" /></div>}>
-              <CustomerCarePortal onClose={() => setIsStaffView(false)} />
-          </Suspense>
-      )}
-
       {!isAuthenticated ? (
       <div className="flex-1 bg-cover bg-center flex flex-col relative" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070")' }}>
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-black/30"></div>
@@ -207,7 +201,13 @@ function App() {
         {/* Login Area */}
         <div className="flex-1 relative z-10 flex items-center justify-end px-4 md:px-12 lg:px-24">
              <div className="w-full max-w-sm mr-auto md:mr-0 flex flex-col gap-6">
-                <AuthModal onLogin={handleLogin} onOpenSupport={handleSwitchToStaff} />
+                 {isStaffView ? (
+                     <Suspense fallback={<div className="bg-white p-8 rounded shadow-xl text-center"><Loader2 className="animate-spin mx-auto h-8 w-8 text-[#117aca]" /></div>}>
+                         <CustomerCarePortal onClose={() => setIsStaffView(false)} />
+                     </Suspense>
+                 ) : (
+                    <AuthModal onLogin={handleLogin} onOpenSupport={() => setIsSupportOpen(true)} />
+                 )}
              </div>
         </div>
 

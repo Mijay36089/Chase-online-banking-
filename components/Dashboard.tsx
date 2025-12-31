@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   ArrowUpRight, 
@@ -22,7 +23,8 @@ import {
   Home,
   ChevronRight,
   Check,
-  Loader2
+  Loader2,
+  Globe
 } from 'lucide-react';
 import { Transaction, ChatMessage, RecurringPayment, Card, Loan, BankAccount, Account } from '../types';
 import { getFinancialAdvice } from '../services/geminiService';
@@ -128,10 +130,10 @@ const Dashboard: React.FC<DashboardProps> = ({
     setChatQuery('');
     setIsAiThinking(true);
 
-    const advice = await getFinancialAdvice(chatQuery, transactions, balance);
+    const { text, sources } = await getFinancialAdvice(chatQuery, transactions, balance);
     
     setIsAiThinking(false);
-    setChatMessages(prev => [...prev, { role: 'model', text: advice }]);
+    setChatMessages(prev => [...prev, { role: 'model', text, sources }]);
   };
 
   const handleSort = (key: 'date' | 'amount') => {
@@ -312,6 +314,28 @@ const Dashboard: React.FC<DashboardProps> = ({
                chatMessages.map((msg, idx) => (
                  <div key={idx} className={`text-sm p-3 rounded-lg ${msg.role === 'user' ? 'bg-gray-100 text-gray-800 ml-4' : 'bg-blue-50 text-blue-900 mr-4'}`}>
                    {msg.text}
+                   {msg.sources && msg.sources.length > 0 && (
+                      <div className="mt-2 pt-2 border-t border-blue-100/50">
+                        <p className="text-xs font-semibold text-blue-800 mb-1 flex items-center gap-1">
+                          <Globe className="h-3 w-3" />
+                          Sources:
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {msg.sources.map((source, i) => (
+                            <a 
+                              key={i} 
+                              href={source.uri} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs bg-white text-[#117aca] px-2 py-1 rounded border border-blue-100 hover:bg-blue-50 truncate max-w-full flex items-center gap-1"
+                              title={source.title}
+                            >
+                               {source.title}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                   )}
                  </div>
                ))
              )}

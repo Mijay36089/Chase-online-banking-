@@ -1,20 +1,37 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
 
-# Run and deploy your AI Studio app
+# Chase Premier Banking Simulation
 
-This contains everything you need to run your app locally.
+## Overview
+A high-fidelity banking simulation featuring secure authentication, real-time interactive dashboards, transaction history visualization, and AI-powered financial insights using Gemini.
 
-View your app in AI Studio: https://ai.studio/apps/drive/18Xle5pIssPL969aGYe_D6oL3VSCM5ZOI
+## Tech Stack
+- **Frontend:** React 19, TypeScript, Vite
+- **Styling:** Tailwind CSS
+- **AI:** Google GenAI SDK (`@google/genai`)
+- **Icons:** Lucide React
 
-## Run Locally
+## Project Structure
+### Core
+- **`App.tsx`**: The main application component. It handles the global state (authentication, user profile) and orchestrates the routing between the Login screen (`AuthModal`) and the `Dashboard`.
+- **`main.tsx` / `index.tsx`**: The entry point that mounts the React application.
 
-**Prerequisites:**  Node.js
+### Components (`components/`)
+- **`Dashboard.tsx`**: The central hub. Displays accounts, transactions, and the AI chat interface ("Chase Genius™").
+- **`AuthModal.tsx`**: Handles user login and registration flows.
+- **`TransferModal.tsx`**: Manages money transfers (Internal, Domestic, International, Bill Pay).
+- **`CardList.tsx`**: Renders the visual credit/debit cards with quick actions (Lock, Pay).
+- **`LiveActivityFeed.tsx`**: Shows real-time notifications for transactions.
+- **`SettingsModal.tsx`**: Manages user profile, security settings, and notifications.
 
+### Services (`services/`)
+- **`geminiService.ts`**: Contains the logic to initialize the Google GenAI client, configure the model (`gemini-2.5-flash`), and handle the `googleSearch` tool for grounded financial advice.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Data
+- **`types.ts`**: TypeScript interfaces for `User`, `Transaction`, `Account`, etc.
+- **`constants.ts`**: Contains the `MOCK_TRANSACTIONS`, `MOCK_CARDS`, and initial balances used to simulate a live account.
+
+## Features
+1.  **AI Financial Assistant**: Ask questions like "How much did I spend on travel?" and get answers grounded in your transaction history and Google Search.
+2.  **Interactive Transfers**: Simulate sending money with realistic validation and confirmation steps.
+3.  **Real-time Updates**: Balance and transaction lists update instantly when actions are performed (optimistic UI).
+4.  **Responsive Design**: Fully adaptive layout for desktop and mobile devices.
