@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-// Added missing TrendingUp import
 import { X, User, Headset, Circle, Send, Search, Filter, Clock, Check, MoreVertical, Loader2, MessageCircle, LayoutDashboard, Users, ShieldAlert, BarChart3, ArrowUpRight, Activity, Bell, Settings, ArrowLeft, TrendingUp } from 'lucide-react';
 import ChaseLogo from './ChaseLogo';
 
@@ -248,4 +247,92 @@ const CustomerCarePortal: React.FC<CustomerCarePortalProps> = ({ onClose }) => {
                 <ShieldAlert className="h-16 w-16 text-red-500 animate-pulse" />
              </div>
              <div>
-                <h3 className="text-2xl font
+                <h3 className="text-2xl font-bold text-gray-900">Vault Access</h3>
+                <p className="text-sm text-gray-500 mt-2 max-w-xs leading-relaxed">No critical breaches in the last 24h. Monitoring global bank endpoints.</p>
+             </div>
+             <div className="w-full bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm text-left">
+                <div className="flex justify-between items-center mb-6">
+                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Global Nodes</span>
+                   <span className="text-[10px] font-bold text-green-500 bg-green-50 px-2 py-0.5 rounded-full">ALL ONLINE</span>
+                </div>
+                <div className="space-y-3">
+                   {[1,2,3].map(n => (
+                      <div key={n} className="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
+                         <span className="text-[10px] font-bold text-gray-600">US-EAST-SERVER-0{n}</span>
+                         <div className="h-1.5 w-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                      </div>
+                   ))}
+                </div>
+             </div>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-slate-50 flex flex-col animate-fade-in overflow-hidden">
+      
+      {/* FULL SCREEN APP HEADER */}
+      <header className="bg-white/80 backdrop-blur-md px-6 py-5 flex items-center justify-between shrink-0 border-b border-gray-100 sticky top-0 z-50">
+         <div className="flex items-center gap-3">
+            <div className="h-10 w-10 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+              <ChaseLogo className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex flex-col">
+              <h1 className="text-sm font-bold text-gray-900 uppercase tracking-tight leading-none mb-1">Staff Portal</h1>
+              <span className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Banking Enterprise Console</span>
+            </div>
+         </div>
+         <button 
+           onClick={onClose}
+           className="h-10 w-10 bg-gray-100 flex items-center justify-center rounded-2xl hover:bg-red-50 hover:text-red-500 transition-all group active:scale-95"
+           aria-label="Exit Business Portal"
+         >
+            <X className="h-5 w-5 text-gray-400 group-hover:text-red-500 transition-colors" />
+         </button>
+      </header>
+
+      {/* SCROLLABLE CONTENT VIEWPORT */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
+         {renderContent()}
+      </div>
+
+      {/* FIXED BOTTOM NAVIGATION BAR */}
+      {!selectedSessionId && (
+        <nav className="bg-white/90 backdrop-blur-xl border-t border-gray-100 px-6 py-4 flex items-center justify-around shrink-0 shadow-[0_-10px_30px_rgba(0,0,0,0.03)] fixed bottom-0 left-0 right-0 z-50 rounded-t-[2.5rem]">
+          <button 
+            onClick={() => setActiveView('dashboard')}
+            className={`flex flex-col items-center gap-1.5 p-2 transition-all ${activeView === 'dashboard' ? 'text-blue-600 scale-110' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            <LayoutDashboard className="h-6 w-6" />
+            <span className="text-[8px] font-bold uppercase tracking-widest">Insights</span>
+          </button>
+          <button 
+            onClick={() => setActiveView('messages')}
+            className={`flex flex-col items-center gap-1.5 p-2 relative transition-all ${activeView === 'messages' ? 'text-blue-600 scale-110' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            <MessageCircle className="h-6 w-6" />
+            <span className="text-[8px] font-bold uppercase tracking-widest">Support</span>
+            <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full border-2 border-white shadow-sm"></span>
+          </button>
+          <button 
+            onClick={() => setActiveView('customers')}
+            className={`flex flex-col items-center gap-1.5 p-2 transition-all ${activeView === 'customers' ? 'text-blue-600 scale-110' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            <Users className="h-6 w-6" />
+            <span className="text-[8px] font-bold uppercase tracking-widest">Clients</span>
+          </button>
+          <button 
+            onClick={() => setActiveView('security')}
+            className={`flex flex-col items-center gap-1.5 p-2 transition-all ${activeView === 'security' ? 'text-blue-600 scale-110' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            <ShieldAlert className="h-6 w-6" />
+            <span className="text-[8px] font-bold uppercase tracking-widest">Admin</span>
+          </button>
+        </nav>
+      )}
+    </div>
+  );
+};
+
+export default CustomerCarePortal;

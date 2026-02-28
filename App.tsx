@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { Menu, Search, User as UserIcon, LogOut, Bell, Building2, Settings, FileText, Send, PieChart, TrendingUp, HelpCircle, X, Store, Activity, FileBarChart, ChevronDown, ArrowUpRight, Lock, RefreshCw, ChevronLeft, ChevronRight as ChevronRightIcon, Star, MoreVertical, Loader2, Headset, ShieldAlert, MessagesSquare } from 'lucide-react';
+import { Menu, Search, LogOut, Bell, Settings, FileText, Send, PieChart, TrendingUp, X, Landmark, ChevronDown, Loader2 } from 'lucide-react';
 import AuthModal from './components/AuthModal';
 import Dashboard from './components/Dashboard';
 import ChaseLogo from './components/ChaseLogo';
 import { Transaction, RecurringPayment, Card, Loan, BankAccount, Account } from './types';
 import { MOCK_TRANSACTIONS, INITIAL_BALANCE, MOCK_CARDS, MOCK_LOANS } from './constants';
 
-// Lazy Load Heavy Components for Fast Initial Load
+// Lazy Load Heavy Components for Performance
 const TransferModal = React.lazy(() => import('./components/TransferModal'));
 const DepositModal = React.lazy(() => import('./components/DepositModal'));
 const TransactionDetailsModal = React.lazy(() => import('./components/TransactionDetailsModal'));
@@ -20,17 +20,15 @@ const WealthManagementModal = React.lazy(() => import('./components/WealthManage
 const CardDetailsModal = React.lazy(() => import('./components/CardDetailsModal'));
 const AccountDetailsModal = React.lazy(() => import('./components/AccountDetailsModal'));
 const OpenAccountModal = React.lazy(() => import('./components/OpenAccountModal'));
-const CustomerCarePortal = React.lazy(() => import('./components/CustomerCarePortal'));
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isStaffView, setIsStaffView] = useState(false);
   const [userName, setUserName] = useState('Marcelo Grant');
   const [balance, setBalance] = useState(INITIAL_BALANCE);
   const [savingsBalance, setSavingsBalance] = useState(124500.00); 
   const [transactions, setTransactions] = useState<Transaction[]>(MOCK_TRANSACTIONS);
   const [cards, setCards] = useState<Card[]>(MOCK_CARDS);
-  const [loans, setLoans] = useState<Loan[]>(MOCK_LOANS);
+  const [loans] = useState<Loan[]>(MOCK_LOANS);
   
   // Modals & UI State
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
@@ -38,21 +36,17 @@ function App() {
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-  
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [selectedCardForDetails, setSelectedCardForDetails] = useState<Card | null>(null);
-
   const [isAccountMgmtOpen, setIsAccountMgmtOpen] = useState(false);
   const [isFinancialToolsOpen, setIsFinancialToolsOpen] = useState(false);
   const [isWealthOpen, setIsWealthOpen] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
   const [isOpenAccountModalOpen, setIsOpenAccountModalOpen] = useState(false);
-  
-  const [settingsInitialTab, setSettingsInitialTab] = useState<any>('profile');
+  const [settingsInitialTab, setSettingsInitialTab] = useState<'profile' | 'security' | 'preferences' | 'notifications' | 'accounts'>('profile');
   const [recurringPaymentIdToCancel, setRecurringPaymentIdToCancel] = useState<string | null>(null);
   const [transferMode, setTransferMode] = useState<'transfer' | 'bill'>('transfer');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
   const [transactionLimit, setTransactionLimit] = useState(5000);
   const [dailyLimit, setDailyLimit] = useState(10000);
   const [dailyTotalSent, setDailyTotalSent] = useState(0);
@@ -65,37 +59,16 @@ function App() {
   const checkingAccount: BankAccount = { id: 'acct-checking', name: 'Total Checking', type: 'Checking', balance: balance, mask: '8842' };
   const savingsAccount: BankAccount = { id: 'acct-savings', name: 'Premier Savings', type: 'Savings', balance: savingsBalance, mask: '9921', apy: 2.45 };
 
-  useEffect(() => {
-    if (!isAuthenticated || isStaffView) return;
-    const interval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        const activeCard = cards[0];
-        if (!activeCard) return;
-        const newTransaction: Transaction = { id: `tx-sim-${Date.now()}`, date: new Date().toISOString().split('T')[0], description: 'Automated Test Tx', amount: 10.00, type: 'debit', category: 'General', accountId: activeCard.id };
-        setTransactions(prev => [newTransaction, ...prev]);
-        setBalance(prev => prev - 10.00);
-      }
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [isAuthenticated, cards, isStaffView]);
-
   const handleLogin = (name?: string) => {
     if (name) setUserName(name);
     setIsAuthenticated(true);
-    setIsStaffView(false);
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    setIsStaffView(false);
     setIsLogoutConfirmOpen(false);
     setIsSidebarOpen(false);
     setSelectedAccount(null);
-  };
-
-  const handleSwitchToStaff = () => {
-    setIsStaffView(true);
-    setIsSidebarOpen(false);
   };
 
   const handleTransfer = (amount: number, recipient: string, type: 'internal' | 'external' | 'international' | 'bill') => {
@@ -119,27 +92,8 @@ function App() {
     setIsTransferModalOpen(false);
   };
 
-  const openTransfer = () => {
-    setTransferMode('transfer');
-    setIsTransferModalOpen(true);
-  };
-
-  const openBillPay = () => {
-    setTransferMode('bill');
-    setIsTransferModalOpen(true);
-  };
-
   const handleToggleCardLock = (id: string) => {
     setCards(currentCards => currentCards.map(card => card.id === id ? { ...card, status: card.status === 'Active' ? 'Frozen' : 'Active' } : card));
-  };
-
-  const handlePayCard = (card: Card) => {
-    setTransferMode('transfer');
-    setIsTransferModalOpen(true);
-  };
-
-  const handleViewStatements = () => {
-    setIsAccountMgmtOpen(true);
   };
 
   const handleOpenAccountApplication = (productName: string, initialDeposit: number) => {
@@ -155,138 +109,89 @@ function App() {
     { title: 'Payments & Transfers', description: 'Send money with Zelle®, pay bills, and transfer funds', icon: Send, action: () => { setIsSidebarOpen(false); setTransferMode('transfer'); setIsTransferModalOpen(true); } },
     { title: 'Financial Tools', description: 'Spending reports, Credit Journey, and Autosave', icon: PieChart, action: () => { setIsSidebarOpen(false); setIsFinancialToolsOpen(true); } },
     { title: 'Wealth Management', description: 'J.P. Morgan Wealth Management & Goals', icon: TrendingUp, action: () => { setIsSidebarOpen(false); setIsWealthOpen(true); } },
-    { title: 'Customer Care Staff', description: 'Enter Representative Dashboard', icon: MessagesSquare, action: handleSwitchToStaff },
     { title: 'Services & Settings', description: 'Customer service, app settings, and security', icon: Settings, action: () => { setIsSidebarOpen(false); setSettingsInitialTab('profile'); setIsSettingsModalOpen(true); } }
   ];
 
-  const currentUrl = isAuthenticated ? 'https://secure.chase.com/web/auth/dashboard' : 'https://www.chase.com/personal/banking/login';
-
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans text-slate-800 overflow-x-hidden">
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-16 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-[#117aca] focus:shadow-md focus:ring-2 focus:ring-[#117aca] rounded-md font-semibold">Skip to main content</a>
-      
-      {/* Overlay Portal: Fixed to device viewport */}
-      {isStaffView && (
-          <Suspense fallback={<div className="fixed inset-0 z-[200] bg-white flex items-center justify-center"><Loader2 className="animate-spin h-8 w-8 text-[#117aca]" /></div>}>
-              <CustomerCarePortal onClose={() => setIsStaffView(false)} />
-          </Suspense>
-      )}
-
       {!isAuthenticated ? (
-      <div className="flex-1 bg-cover bg-center flex flex-col relative" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070")' }}>
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-black/30"></div>
-        
-        {/* Public Header */}
-        <div className="relative z-10 w-full">
-            <div className="bg-black/40 text-white/90 text-xs px-4 md:px-12 py-1.5 flex justify-between">
-                <div className="flex gap-4"><span className="cursor-pointer hover:text-white font-bold">Personal</span><span className="cursor-pointer hover:text-white">Business</span><span className="cursor-pointer hover:text-white">Commercial</span></div>
-                <div className="flex items-center gap-4">
-                    <button 
-                      onClick={handleSwitchToStaff}
-                      className="bg-white/10 hover:bg-white/20 px-2 py-0.5 rounded flex items-center gap-1.5 transition-colors font-bold"
-                    >
-                      <Headset className="h-3 w-3" /> Customer Care Access
-                    </button>
-                    <span className="cursor-pointer hover:text-white">Español</span>
-                </div>
-            </div>
+        <div className="flex-1 bg-cover bg-center flex flex-col relative" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070")' }}>
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-black/30"></div>
+          <div className="relative z-10 w-full">
             <div className="bg-[#117aca] text-white px-4 md:px-12 py-4 shadow-md">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-3"><ChaseLogo className="h-10 w-10 text-white" /><span className="text-2xl font-bold tracking-tight uppercase">Chase</span></div>
-                    <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-white/90">
-                         <div className="flex items-center gap-1 cursor-pointer hover:text-white">Checking <ChevronDown className="h-3 w-3" /></div>
-                         <div className="flex items-center gap-1 cursor-pointer hover:text-white">Savings <ChevronDown className="h-3 w-3" /></div>
-                         <div className="flex items-center gap-1 cursor-pointer hover:text-white">Credit Cards <ChevronDown className="h-3 w-3" /></div>
-                         <div className="flex items-center gap-1 cursor-pointer hover:text-white">Home Loans <ChevronDown className="h-3 w-3" /></div>
-                    </nav>
-                    <div className="md:hidden"><Menu className="h-6 w-6" /></div>
-                </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3"><ChaseLogo className="h-10 w-10 text-white" /><span className="text-2xl font-bold tracking-tight uppercase">Chase</span></div>
+              </div>
             </div>
+          </div>
+          <div className="flex-1 relative z-10 flex items-center justify-center px-4">
+            <div className="w-full max-w-sm"><AuthModal onLogin={handleLogin} /></div>
+          </div>
+          <footer className="relative z-10 py-6 text-center text-white/70 text-xs bg-black/20 backdrop-blur-sm">
+            <p>© 2024 JPMorgan Chase & Co. Member FDIC.</p>
+          </footer>
         </div>
-
-        {/* Login Area */}
-        <div className="flex-1 relative z-10 flex items-center justify-end px-4 md:px-12 lg:px-24">
-             <div className="w-full max-w-sm mr-auto md:mr-0 flex flex-col gap-6">
-                <AuthModal onLogin={handleLogin} onOpenSupport={handleSwitchToStaff} />
-             </div>
-        </div>
-
-        {/* Public Footer */}
-        <div className="relative z-10 py-6 text-center text-white/70 text-xs bg-black/20 backdrop-blur-sm mt-auto w-full">
-            <p className="mb-2">JPMorgan Chase & Co. Member FDIC.</p>
-            <div className="mt-4 text-[10px] text-gray-400 font-mono">{currentUrl}</div>
-        </div>
-      </div>
       ) : (
-      <>
-        {/* Secure Dashboard Header */}
-        <header className="bg-[#117aca] text-white shadow-lg sticky top-0 z-40">
+        <>
+          <header className="bg-[#117aca] text-white shadow-lg sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-                <button className="p-1 hover:bg-blue-700 rounded transition" onClick={() => setIsSidebarOpen(true)} aria-label="Open menu"><Menu className="h-6 w-6" /></button>
+              <div className="flex items-center gap-4">
+                <button className="p-1 hover:bg-blue-700 rounded transition" onClick={() => setIsSidebarOpen(true)}><Menu className="h-6 w-6" /></button>
                 <div className="flex items-center gap-2"><ChaseLogo className="h-8 w-8 text-white" /><span className="font-bold text-2xl tracking-tight">CHASE</span></div>
-                <nav className="hidden md:flex ml-8 space-x-6 text-sm font-medium">
-                  <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-white border-b-2 border-white pb-0.5">Accounts</button>
-                  <button onClick={openTransfer} className="text-blue-100 hover:text-white">Pay & Transfer</button>
-                  <button onClick={() => setIsFinancialToolsOpen(true)} className="text-blue-100 hover:text-white">Plan & Track</button>
-                </nav>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="hidden md:inline text-sm font-medium">{userName}</span>
+                <button onClick={() => setIsLogoutConfirmOpen(true)} className="p-2 bg-blue-800 hover:bg-blue-900 rounded-full transition"><LogOut className="h-4 w-4" /></button>
+              </div>
             </div>
+          </header>
 
-            {/* Notification Bar Area */}
-            <div className="flex items-center gap-2">
-                {/* QUICK STAFF ACCESS ICON */}
-                <button 
-                  onClick={handleSwitchToStaff}
-                  className="p-2 hover:bg-blue-700 rounded-full transition relative group" 
-                  title="Switch to Customer Care Dashboard"
-                  aria-label="Access Customer Care Portal"
-                >
-                  <Headset className="h-5 w-5 text-white" />
-                  <span className="absolute -top-1 -right-1 bg-orange-500 text-[8px] font-bold px-1 rounded-full border border-[#117aca]">STAFF</span>
-                </button>
-
-                <button onClick={() => setIsSupportOpen(true)} className="p-2 hover:bg-blue-700 rounded-full transition"><Search className="h-5 w-5 text-blue-100" /></button>
-                
-                <button className="p-2 hover:bg-blue-700 rounded-full transition relative">
-                  <Bell className="h-5 w-5 text-blue-100" />
-                  <span className="absolute top-2 right-2.5 h-2 w-2 bg-red-500 rounded-full border-2 border-[#117aca]"></span>
-                </button>
-
-                <div className="hidden md:flex items-center gap-2 pl-4 border-l border-blue-600">
-                  <span className="text-sm font-medium">{userName}</span>
-                  <button onClick={() => { setSettingsInitialTab('profile'); setIsSettingsModalOpen(true); }} className="p-2 hover:bg-blue-800 rounded-full transition"><Settings className="h-5 w-5 text-blue-100" /></button>
-                  <button onClick={() => setIsLogoutConfirmOpen(true)} className="p-2 bg-blue-800 hover:bg-blue-900 rounded-full transition"><LogOut className="h-4 w-4" /></button>
-                </div>
-            </div>
-            </div>
-        </header>
-
-        {/* Feature Sidebar */}
-        {isSidebarOpen && (
+          {isSidebarOpen && (
             <div className="fixed inset-0 z-50 flex">
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)}></div>
-                <div className="relative w-full max-w-xs bg-white h-full shadow-2xl flex flex-col transform transition-transform animate-fade-in" style={{ animationName: 'slideRight' }}>
-                    <div className="p-4 bg-[#117aca] text-white flex justify-between items-center">
-                        <div className="flex items-center gap-2"><ChaseLogo className="h-6 w-6 text-white" /><span className="font-bold text-lg">Menu</span></div>
-                        <button onClick={() => setIsSidebarOpen(false)}><X className="h-6 w-6" /></button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto py-2">
-                        {menuItems.map((item, index) => (
-                            <button key={index} onClick={item.action} className="w-full text-left p-4 hover:bg-gray-50 border-b border-gray-100 flex gap-4 items-start group">
-                                <div className="p-2 bg-blue-50 text-[#117aca] rounded-lg group-hover:bg-[#117aca] group-hover:text-white transition-colors"><item.icon className="h-5 w-5" /></div>
-                                <div><h4 className="font-semibold text-gray-900 text-sm">{item.title}</h4><p className="text-xs text-gray-500">{item.description}</p></div>
-                            </button>
-                        ))}
-                    </div>
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)}></div>
+              <div className="relative w-full max-w-xs bg-white h-full shadow-2xl flex flex-col">
+                <div className="p-4 bg-[#117aca] text-white flex justify-between items-center">
+                  <div className="flex items-center gap-2 font-bold">Menu</div>
+                  <button onClick={() => setIsSidebarOpen(false)}><X className="h-6 w-6" /></button>
                 </div>
+                <div className="flex-1 overflow-y-auto py-2">
+                  {menuItems.map((item, index) => (
+                    <button key={index} onClick={item.action} className="w-full text-left p-4 hover:bg-gray-50 border-b border-gray-100 flex gap-4 items-start">
+                      <div className="p-2 bg-blue-50 text-[#117aca] rounded-lg"><item.icon className="h-5 w-5" /></div>
+                      <div><h4 className="font-semibold text-gray-900 text-sm">{item.title}</h4><p className="text-xs text-gray-500">{item.description}</p></div>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
-        )}
+          )}
 
-        <main id="main-content" className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8" tabIndex={-1}>
-            <Dashboard userName={userName} balance={balance} savingsBalance={savingsBalance} transactions={transactions} recurringPayments={recurringPayments} cards={cards} loans={loans} onTransferClick={openTransfer} onBillPayClick={openBillPay} onDepositClick={() => setIsDepositModalOpen(true)} onCancelRecurring={(id) => setRecurringPaymentIdToCancel(id)} onToggleCardLock={handleToggleCardLock} onTransactionClick={(tx) => setSelectedTransaction(tx)} onPayCard={handlePayCard} onViewStatements={handleViewStatements} onShowDetails={(c) => setSelectedCardForDetails(c)} onSelectAccount={(a) => setSelectedAccount(a)} onOpenAccountClick={() => setIsOpenAccountModalOpen(true)} checkingAccount={checkingAccount} savingsAccount={savingsAccount} />
-        </main>
+          <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+            <Dashboard 
+              userName={userName} 
+              balance={balance} 
+              savingsBalance={savingsBalance} 
+              transactions={transactions} 
+              recurringPayments={recurringPayments} 
+              cards={cards} 
+              loans={loans} 
+              onTransferClick={() => { setTransferMode('transfer'); setIsTransferModalOpen(true); }} 
+              onBillPayClick={() => { setTransferMode('bill'); setIsTransferModalOpen(true); }} 
+              onDepositClick={() => setIsDepositModalOpen(true)} 
+              onCancelRecurring={setRecurringPaymentIdToCancel} 
+              onToggleCardLock={handleToggleCardLock} 
+              onTransactionClick={setSelectedTransaction} 
+              onPayCard={() => { setTransferMode('transfer'); setIsTransferModalOpen(true); }} 
+              onViewStatements={() => setIsAccountMgmtOpen(true)} 
+              onShowDetails={setSelectedCardForDetails} 
+              onSelectAccount={setSelectedAccount} 
+              onOpenAccountClick={() => setIsOpenAccountModalOpen(true)}
+              checkingAccount={checkingAccount} 
+              savingsAccount={savingsAccount} 
+            />
+          </main>
 
-        <Suspense fallback={<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/10 backdrop-blur-[1px]"><div className="bg-white p-4 rounded-full shadow-lg"><Loader2 className="h-8 w-8 animate-spin text-[#117aca]" /></div></div>}>
+          <Suspense fallback={<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/10"><Loader2 className="h-8 w-8 animate-spin text-[#117aca]" /></div>}>
             <TransferModal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} onTransfer={handleTransfer} onSchedule={handleSchedulePayment} onUpdateLimits={(tx, d) => { setTransactionLimit(tx); setDailyLimit(d); }} currentBalance={balance} savingsBalance={savingsBalance} mode={transferMode} transactionLimit={transactionLimit} dailyLimit={dailyLimit} dailyTotalSent={dailyTotalSent} />
             <DepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} onDeposit={handleDepositCheck} />
             <SettingsModal isOpen={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} initialTab={settingsInitialTab} />
@@ -300,8 +205,8 @@ function App() {
             <ConfirmationModal isOpen={isLogoutConfirmOpen} onClose={() => setIsLogoutConfirmOpen(false)} onConfirm={handleLogout} title="Sign out?" message="Are you sure you want to sign out?" confirmLabel="Sign Out" variant="danger" icon={LogOut} />
             <ConfirmationModal isOpen={!!recurringPaymentIdToCancel} onClose={() => setRecurringPaymentIdToCancel(null)} onConfirm={() => { if (recurringPaymentIdToCancel) { setRecurringPayments(prev => prev.filter(p => p.id !== recurringPaymentIdToCancel)); setRecurringPaymentIdToCancel(null); } }} title="Cancel Payment?" message="Are you sure?" confirmLabel="Cancel" variant="danger" />
             <TransactionDetailsModal isOpen={!!selectedTransaction} onClose={() => setSelectedTransaction(null)} transaction={selectedTransaction} />
-        </Suspense>
-      </>
+          </Suspense>
+        </>
       )}
     </div>
   );
